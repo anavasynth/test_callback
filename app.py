@@ -25,7 +25,7 @@ def pay():
         "order_id": order_id ,
         "version": "3" ,
         "sandbox": 0 ,  # Використовуємо тестовий режим
-        "server_url": "https://sockswebapp.onrender.com/pay-callbac"
+        "server_url": "https://sockswebapp.onrender.com/pay-callback"
     }
     signature = liqpay.cnb_signature(params)
     data = liqpay.cnb_data(params)
