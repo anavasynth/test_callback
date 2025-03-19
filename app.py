@@ -4,6 +4,8 @@ import hashlib
 import base64
 import json
 import os
+import uuid
+
 
 app = Flask(__name__)
 
@@ -11,18 +13,16 @@ app = Flask(__name__)
 LIQPAY_PUBLIC_KEY = "sandbox_i82004666388"
 LIQPAY_PRIVATE_KEY = "sandbox_2bZ5yQJd7LtJrz7JTz6D3LiuziFpCiN9rT7PLQDZ"
 
-
-
-
 @app.route("/pay" , methods = ["GET"])
 def pay():
+    order_id = str(uuid.uuid4())
     liqpay = LiqPay(LIQPAY_PUBLIC_KEY , LIQPAY_PRIVATE_KEY)
     params = {
         "action": "pay" ,
         "amount": "100" ,
         "currency": "USD" ,
         "description": "Payment for clothes" ,
-        "order_id": "order_id_1" ,
+        "order_id": order_id ,
         "version": "3" ,
         "sandbox": 1 ,  # Використовуємо тестовий режим
         "server_url": "https://sockswebapp.onrender.com/pay-callback"
