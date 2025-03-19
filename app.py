@@ -60,6 +60,7 @@ def pay():
 
     signature = liqpay.cnb_signature(params)
     data = liqpay.cnb_data(params)
+    print("signature", signature, "data", data)
 
     return render_template("pay.html" , data = data , signature = signature , name = name , surname = surname ,
                            phone = phone , order_id = order_id)
