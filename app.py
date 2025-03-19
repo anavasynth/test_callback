@@ -1,3 +1,7 @@
+import logging
+
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import requests
 from flask import Flask , render_template , request , jsonify
 from liqpay import LiqPay
@@ -16,32 +20,16 @@ LIQPAY_PRIVATE_KEY = "sandbox_2bZ5yQJd7LtJrz7JTz6D3LiuziFpCiN9rT7PLQDZ"
 
 FILE_URL = "https://dengromko.pythonanywhere.com/static/uploads/users.txt"
 
-def append_payment_data(data):
-    # 1️⃣ Отримуємо поточні дані з файлу
-    try:
-        response = requests.get(FILE_URL)
-        if response.status_code == 200:
-            existing_data = response.text.strip()
-        else:
-            existing_data = ""
-    except Exception as e:
-        print(f"❌ Помилка при завантаженні файлу: {e}")
-        existing_data = ""
+# Підключення до Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds_path = "hale-mantra-452117-n7-d894ab047cfb.json"
+creds = ServiceAccountCredentials.from_json_keyfile_name(creds_path, scope)
+client = gspread.authorize(creds)
 
-    # 2️⃣ Додаємо новий запис
-    new_data = json.dumps(data, indent=4)
-    updated_content = existing_data + "\n" + new_data
+# Відкриття таблиці (заміни "SHEET_ID" на свій)
+SHEET_ID = "1MdcrCtHgwuNW8QCAkffdtXvDj6Y18laXLfCyOjsyH_I"
+sheet = client.open_by_key(SHEET_ID).worksheet("fixcallback")
 
-    # 3️⃣ Відправляємо оновлений файл на сервер (якщо у вас є API або доступ)
-    # ❗ Для цього у вас має бути відповідний ендпоінт або доступ через SFTP
-    try:
-        response = requests.post(FILE_URL, data={"content": updated_content})
-        if response.status_code == 200:
-            print("✅ Файл успішно оновлений!")
-        else:
-            print(f"❌ Помилка оновлення файлу: {response.status_code}")
-    except Exception as e:
-        print(f"❌ Помилка відправки: {e}")
 
 # Головна сторінка з формою
 @app.route("/", methods=["GET"])
@@ -94,7 +82,25 @@ def pay_callback():
 
         # Перевіряємо статус платежу
         if response.get("status") == "success":
-            append_payment_data(response)
+            # Отримуємо всі значення з першого стовпця
+            first_column_values = sheet.col_values(1)
+
+            # Знаходимо перший порожній рядок
+            empty_row_index = None
+            for i , value in enumerate(first_column_values):
+                if not value:
+                    empty_row_index = i + 1  # Індексація в Google Sheets починається з 1
+                    break
+
+            # Якщо немає порожніх рядків, додаємо новий рядок в кінець
+            if empty_row_index is None:
+                empty_row_index = len(first_column_values) + 1
+
+            # Записуємо дані в порожній рядок
+            sheet.insert_row([response['status'], response['sender_first_name'], response['sender_last_name']] ,
+                             index = empty_row_index)
+
+            logging.info("Платіж успішно записано в таблицю")
 
         return jsonify({"status": "success" , "data": response})
 
