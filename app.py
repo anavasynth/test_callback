@@ -97,7 +97,7 @@ def pay_callback():
                 empty_row_index = len(first_column_values) + 1
 
             # Записуємо дані в порожній рядок
-            sheet.insert_row([response['status'], response['sender_first_name'], response['sender_last_name']] ,
+            sheet.insert_row([response['status']] ,
                              index = empty_row_index)
 
             logging.info("Платіж успішно записано в таблицю")
