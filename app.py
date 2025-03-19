@@ -54,7 +54,7 @@ def pay():
         "description": f"Payment for clothes by {name} {surname}" ,
         "order_id": order_id ,
         "version": "3" ,
-        "sandbox": 1 ,  # Тестовий режим (0 - для реального платежу)
+        "sandbox": 0 ,  # Тестовий режим (0 - для реального платежу)
         "server_url": "https://sockswebapp.onrender.com/pay-callback" ,
     }
 
@@ -68,6 +68,7 @@ def pay():
 # Callback для перевірки платежу
 @app.route("/pay-callback" , methods = ["POST"])
 def pay_callback():
+    print("🔵 Callback отримано!")  # Додали логування запитів
     data = request.form.get("data")
     signature = request.form.get("signature")
     print(request.form)
