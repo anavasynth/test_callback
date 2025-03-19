@@ -70,6 +70,7 @@ def pay():
 def pay_callback():
     data = request.form.get("data")
     signature = request.form.get("signature")
+    print(request.form)
 
     # Генеруємо підпис для перевірки коректності даних
     calculated_signature = base64.b64encode(
@@ -77,6 +78,7 @@ def pay_callback():
     ).decode()
 
     if calculated_signature == signature:
+        print(f"🔎 Отримані дані: {data}")
         response = json.loads(base64.b64decode(data).decode("utf-8"))
         print("✅ Callback успішний:" , response)
 
