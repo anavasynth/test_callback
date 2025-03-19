@@ -25,7 +25,7 @@ def pay():
         "order_id": "order_id_1" ,
         "version": "3" ,
         "sandbox": 1 ,  # Використовуємо тестовий режим
-        "server_url": "https://9338-91-237-27-107.ngrok-free.app/pay-callback"
+        "server_url": "https://sockswebapp.onrender.com/pay-callback"
     }
     signature = liqpay.cnb_signature(params)
     data = liqpay.cnb_data(params)
