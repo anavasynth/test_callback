@@ -54,7 +54,7 @@ def pay():
         "description": f"Payment for clothes by {name} {surname}" ,
         "order_id": order_id ,
         "version": "3" ,
-        "sandbox": 0 ,  # Тестовий режим (0 - для реального платежу)
+        "sandbox": 1 ,  # Тестовий режим (0 - для реального платежу)
         "server_url": "https://sockswebapp.onrender.com/pay-callback" ,
     }
 
