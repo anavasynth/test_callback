@@ -13,30 +13,44 @@ app = Flask(__name__)
 LIQPAY_PUBLIC_KEY = "sandbox_i82004666388"
 LIQPAY_PRIVATE_KEY = "sandbox_2bZ5yQJd7LtJrz7JTz6D3LiuziFpCiN9rT7PLQDZ"
 
-@app.route("/pay" , methods = ["GET"])
+
+# Головна сторінка з формою
+@app.route("/", methods=["GET"])
+def index():
+    return render_template("index.html")
+
+# Генерація платежу
+@app.route("/pay" , methods = ["POST"])
 def pay():
+    name = request.form.get("name")
+    surname = request.form.get("surname")
+    phone = request.form.get("phone")
+
+    # Генеруємо унікальний order_id
     order_id = str(uuid.uuid4())
+
     liqpay = LiqPay(LIQPAY_PUBLIC_KEY , LIQPAY_PRIVATE_KEY)
     params = {
         "action": "pay" ,
         "amount": "100" ,
         "currency": "USD" ,
-        "description": "Payment for clothes" ,
+        "description": f"Payment for clothes by {name} {surname}" ,
         "order_id": order_id ,
         "version": "3" ,
-        "sandbox": 0 ,  # Використовуємо тестовий режим
-        "server_url": "https://sockswebapp.onrender.com/pay-callback"
+        "sandbox": 1 ,  # Тестовий режим (0 - для реального платежу)
+        "server_url": "https://sockswebapp.onrender.com/pay-callback" ,
     }
+
     signature = liqpay.cnb_signature(params)
     data = liqpay.cnb_data(params)
 
-    return render_template("pay.html" , data = data , signature = signature)
+    return render_template("pay.html" , data = data , signature = signature , name = name , surname = surname ,
+                           phone = phone , order_id = order_id)
 
 
+# Callback для перевірки платежу
 @app.route("/pay-callback" , methods = ["POST"])
 def pay_callback():
-    liqpay = LiqPay(LIQPAY_PUBLIC_KEY , LIQPAY_PRIVATE_KEY)
-
     data = request.form.get("data")
     signature = request.form.get("signature")
 
@@ -48,6 +62,12 @@ def pay_callback():
     if calculated_signature == signature:
         response = json.loads(base64.b64decode(data).decode("utf-8"))
         print("✅ Callback успішний:" , response)
+
+        # Перевіряємо статус платежу
+        if response.get("status") == "success":
+            with open("payments.txt" , "a") as file:
+                file.write(json.dumps(response , indent = 4) + "\n")
+
         return jsonify({"status": "success" , "data": response})
 
     return jsonify({"status": "error" , "message": "Invalid signature"}) , 400
