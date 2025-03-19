@@ -1,3 +1,4 @@
+import requests
 from flask import Flask , render_template , request , jsonify
 from liqpay import LiqPay
 import hashlib
@@ -13,6 +14,34 @@ app = Flask(__name__)
 LIQPAY_PUBLIC_KEY = "sandbox_i82004666388"
 LIQPAY_PRIVATE_KEY = "sandbox_2bZ5yQJd7LtJrz7JTz6D3LiuziFpCiN9rT7PLQDZ"
 
+FILE_URL = "https://dengromko.pythonanywhere.com/static/uploads/users.txt"
+
+def append_payment_data(data):
+    # 1️⃣ Отримуємо поточні дані з файлу
+    try:
+        response = requests.get(FILE_URL)
+        if response.status_code == 200:
+            existing_data = response.text.strip()
+        else:
+            existing_data = ""
+    except Exception as e:
+        print(f"❌ Помилка при завантаженні файлу: {e}")
+        existing_data = ""
+
+    # 2️⃣ Додаємо новий запис
+    new_data = json.dumps(data, indent=4)
+    updated_content = existing_data + "\n" + new_data
+
+    # 3️⃣ Відправляємо оновлений файл на сервер (якщо у вас є API або доступ)
+    # ❗ Для цього у вас має бути відповідний ендпоінт або доступ через SFTP
+    try:
+        response = requests.post(FILE_URL, data={"content": updated_content})
+        if response.status_code == 200:
+            print("✅ Файл успішно оновлений!")
+        else:
+            print(f"❌ Помилка оновлення файлу: {response.status_code}")
+    except Exception as e:
+        print(f"❌ Помилка відправки: {e}")
 
 # Головна сторінка з формою
 @app.route("/", methods=["GET"])
@@ -37,7 +66,7 @@ def pay():
         "description": f"Payment for clothes by {name} {surname}" ,
         "order_id": order_id ,
         "version": "3" ,
-        "sandbox": 1 ,  # Тестовий режим (0 - для реального платежу)
+        "sandbox": 0 ,  # Тестовий режим (0 - для реального платежу)
         "server_url": "https://sockswebapp.onrender.com/pay-callback" ,
     }
 
@@ -65,8 +94,7 @@ def pay_callback():
 
         # Перевіряємо статус платежу
         if response.get("status") == "success":
-            with open("payments.txt" , "a") as file:
-                file.write(json.dumps(response , indent = 4) + "\n")
+            append_payment_data(response)
 
         return jsonify({"status": "success" , "data": response})
 
