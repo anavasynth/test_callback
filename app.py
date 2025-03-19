@@ -24,8 +24,8 @@ def pay():
         "description": "Payment for clothes" ,
         "order_id": order_id ,
         "version": "3" ,
-        "sandbox": 1 ,  # Використовуємо тестовий режим
-        "server_url": "https://sockswebapp.onrender.com/pay-callback"
+        "sandbox": 0 ,  # Використовуємо тестовий режим
+        "server_url": "https://sockswebapp.onrender.com/pay-callbac"
     }
     signature = liqpay.cnb_signature(params)
     data = liqpay.cnb_data(params)
